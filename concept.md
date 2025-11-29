@@ -67,3 +67,9 @@ Application code structure should be as modular and as human readable as possibl
 - utils
 - database
     - sql statements
+
+Never use `except Exception` as default, use always proper most accurate error handling as possible and let script to crash on unexpected error.
+
+## Tests
+
+Create unittests for each module, for example to test llm provider separately. Create temporary virtual environment for tests only. Report code line coverage.

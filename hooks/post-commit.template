@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# JRNL post-commit hook
+# Automatically logs commits with LLM-compressed summaries
+#
+
+# Get repository information
+REPO_PATH=$(git rev-parse --show-toplevel 2>/dev/null)
+COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null)
+
+# Exit if we couldn't get repo info
+if [ -z "$REPO_PATH" ] || [ -z "$COMMIT_HASH" ]; then
+    exit 0
+fi
+
+# jrnl paths
+JRNL_DIR="$HOME/.jrnl"
+JRNL_CMD="$HOME/.local/bin/jrnl"
+
+# Skip if this is the jrnl directory itself
+if [ "$REPO_PATH" = "$JRNL_DIR" ]; then
+    exit 0
+fi
+
+# Check if jrnl is installed
+if [ ! -f "$JRNL_CMD" ]; then
+    exit 0
+fi
+
+# Check if hooks are enabled in config
+if [ ! -f "$JRNL_DIR/config.json" ]; then
+    exit 0
+fi
+
+HOOKS_ENABLED=$(cat "$JRNL_DIR/config.json" | grep -o '"git_hooks_enabled"[[:space:]]*:[[:space:]]*true')
+if [ -z "$HOOKS_ENABLED" ]; then
+    exit 0
+fi
+
+# Check if current repo is excluded
+EXCLUDED=$(cat "$JRNL_DIR/config.json" | grep -o "\"$REPO_PATH\"")
+if [ -n "$EXCLUDED" ]; then
+    exit 0
+fi
+
+# Run jrnl new command in background
+"$JRNL_CMD" new --git \
+    --repo-path "$REPO_PATH" \
+    --commit-hash "$COMMIT_HASH" \
+    >> "$JRNL_DIR/logs/hook.log" 2>&1 &
+
+# Disown the background process
+disown
+
+exit 0
