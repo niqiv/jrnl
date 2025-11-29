@@ -151,3 +151,4 @@ To run from source:
 ```bash
 python3 -m jrnl --help
 ```
+
