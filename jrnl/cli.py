@@ -10,37 +10,110 @@ def create_parser():
     """Create the argument parser with all subcommands."""
     parser = argparse.ArgumentParser(
         prog='jrnl',
-        description='Developer work journal for standups'
+        description='Developer work journal for standups - automatically track your work with git hooks and LLM-powered summaries',
+        epilog='Run "jrnl <command> --help" for more information on a specific command.'
     )
     parser.add_argument('--version', action='version', version=f'jrnl {__version__}')
 
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # jrnl new
-    new_parser = subparsers.add_parser('new', help='Create a log entry')
-    new_parser.add_argument('-m', '--message', help='Log message')
+    new_parser = subparsers.add_parser(
+        'new',
+        help='Create a log entry',
+        epilog='''
+Examples:
+  # Create a manual log entry
+  jrnl new -m "fixed authentication bug"
+
+  # Add an old commit manually
+  jrnl new --git --repo-path "$(pwd)" --commit-hash abc123
+
+  # Add multiple old commits
+  for hash in $(git log -5 --format=%%H); do
+    jrnl new --git --repo-path "$(pwd)" --commit-hash "$hash"
+  done
+        ''',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    new_parser.add_argument('-m', '--message', help='Log message for manual entry')
     new_parser.add_argument('-l', '--label', help='Optional label for this entry')
-    new_parser.add_argument('--git', action='store_true', help='Git hook mode')
-    new_parser.add_argument('--repo-path', help='Repository path (git mode)')
-    new_parser.add_argument('--commit-hash', help='Commit hash (git mode)')
+    new_parser.add_argument('--git', action='store_true',
+                           help='Git mode: process a commit with LLM compression')
+    new_parser.add_argument('--repo-path', help='Repository path (required with --git)')
+    new_parser.add_argument('--commit-hash', help='Commit hash to process (required with --git)')
 
     # jrnl daily / standup
-    daily_parser = subparsers.add_parser('daily', aliases=['standup'],
-                                         help='Generate standup message')
+    daily_parser = subparsers.add_parser(
+        'daily',
+        aliases=['standup'],
+        help='Generate standup message from your logs',
+        epilog='''
+Examples:
+  # Generate today's standup
+  jrnl daily
+
+  # Regenerate today's standup with latest logs
+  jrnl daily --regenerate
+
+  # Generate standup including last 2 days
+  jrnl daily --days 2
+        ''',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     daily_parser.add_argument('-d', '--days', type=int, default=1,
                              help='Number of days to include (default: 1)')
     daily_parser.add_argument('-r', '--regenerate', action='store_true',
-                             help='Regenerate last daily')
+                             help='Regenerate today\'s standup with latest logs')
 
     # jrnl logs
-    logs_parser = subparsers.add_parser('logs', help='View log entries')
+    logs_parser = subparsers.add_parser(
+        'logs',
+        help='View log entries',
+        epilog='''
+Examples:
+  # View last 50 logs (default)
+  jrnl logs
+
+  # View last 10 logs
+  jrnl logs -n 10
+
+  # View logs from last 3 days
+  jrnl logs --days 3
+        ''',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     logs_parser.add_argument('-d', '--days', type=int,
                             help='Filter logs by number of days')
     logs_parser.add_argument('-n', '--limit', type=int, default=50,
                             help='Maximum number of logs to show (default: 50)')
 
     # jrnl config
-    config_parser = subparsers.add_parser('config', help='Manage configuration')
+    config_parser = subparsers.add_parser(
+        'config',
+        help='Manage configuration',
+        epilog='''
+Examples:
+  # Show current configuration
+  jrnl config
+
+  # Set LLM provider
+  jrnl config set-provider anthropic
+  jrnl config set-provider ollama
+
+  # Configure Anthropic API key and model
+  jrnl config set anthropic api_key sk-ant-...
+  jrnl config set anthropic model claude-sonnet-4-5-20250929
+
+  # Exclude repositories from git hooks
+  jrnl config exclude /path/to/repo
+  jrnl config exclude-current
+
+  # Re-enable a repository
+  jrnl config include /path/to/repo
+        ''',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     config_parser.add_argument('action', nargs='?',
                               choices=['show', 'set-provider', 'set', 'exclude', 'include', 'exclude-current'],
                               help='Configuration action')
