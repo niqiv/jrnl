@@ -57,6 +57,35 @@ def get_all_logs(limit: int = 50) -> List[Log]:
         ) for row in rows]
 
 
+def get_log_by_label(label: str) -> Optional[Log]:
+    """Get a log entry by its label/hash."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            '''SELECT * FROM logs
+               WHERE label = ?''',
+            (label,)
+        )
+        row = cursor.fetchone()
+        if row:
+            return Log(
+                id=row['id'],
+                timestamp=row['timestamp'],
+                log_message=row['log_message'],
+                type=row['type'],
+                label=row['label']
+            )
+        return None
+
+
+def delete_log(label: str) -> bool:
+    """Delete a log entry by its label/hash. Returns True if deleted, False if not found."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM logs WHERE label = ?', (label,))
+        return cursor.rowcount > 0
+
+
 def insert_daily(daily: Daily) -> int:
     """Insert or replace a daily entry."""
     with get_connection() as conn:

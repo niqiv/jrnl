@@ -80,6 +80,9 @@ Examples:
 
   # View logs from last 3 days
   jrnl logs --days 3
+
+  # Delete a log entry by hash/label
+  jrnl logs --delete 5a546f30
         ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -87,6 +90,8 @@ Examples:
                             help='Filter logs by number of days')
     logs_parser.add_argument('-n', '--limit', type=int, default=50,
                             help='Maximum number of logs to show (default: 50)')
+    logs_parser.add_argument('--delete', metavar='HASH',
+                            help='Delete a log entry by its hash/label')
 
     # jrnl config
     config_parser = subparsers.add_parser(
