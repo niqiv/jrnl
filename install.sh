@@ -46,6 +46,7 @@ setup_venv() {
     source "$VENV_DIR/bin/activate"
     pip install --upgrade pip > /dev/null 2>&1
     pip install -r "$REPO_DIR/requirements.txt" > /dev/null 2>&1
+    pip install -e "$REPO_DIR" > /dev/null 2>&1
     deactivate
     echo "✓ Virtual environment created and dependencies installed"
 }
