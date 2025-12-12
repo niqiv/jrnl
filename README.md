@@ -68,6 +68,11 @@ jrnl daily --days 2
 
 # Regenerate today's standup
 jrnl daily --regenerate
+
+# Delete a daily entry
+jrnl daily --delete 2024-12-12
+jrnl daily --delete today
+jrnl daily --delete latest
 ```
 
 ### Configuration Management

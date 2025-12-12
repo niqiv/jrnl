@@ -58,6 +58,11 @@ Examples:
 
   # Generate standup including last 2 days
   jrnl daily --days 2
+
+  # Delete a daily entry
+  jrnl daily --delete 2024-12-12
+  jrnl daily --delete today
+  jrnl daily --delete latest
         ''',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -65,6 +70,8 @@ Examples:
                              help='Number of days to include (default: 1)')
     daily_parser.add_argument('-r', '--regenerate', action='store_true',
                              help='Regenerate today\'s standup with latest logs')
+    daily_parser.add_argument('--delete', metavar='DATE',
+                             help='Delete a daily entry (DATE: YYYY-MM-DD, "today", or "latest")')
 
     # jrnl logs
     logs_parser = subparsers.add_parser(

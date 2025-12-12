@@ -5,7 +5,9 @@ from ..database.operations import (
     get_logs_since,
     get_latest_daily,
     get_previous_daily_before,
-    insert_daily
+    get_daily_for_date,
+    insert_daily,
+    delete_daily
 )
 from ..database.models import Daily
 from ..config import Config
@@ -17,6 +19,10 @@ from ..utils.formatting import format_daily_header
 def handle(args):
     """Handle the 'daily' command."""
     try:
+        # Handle deletion if requested
+        if hasattr(args, 'delete') and args.delete:
+            return handle_delete(args.delete)
+
         config = Config.load()
 
         # Determine date range for logs
@@ -74,6 +80,46 @@ def handle(args):
         print(f"Unexpected error generating daily: {e}")
         import traceback
         traceback.print_exc()
+        return 1
+
+
+def handle_delete(date_arg: str) -> int:
+    """Handle deleting a daily entry."""
+    try:
+        # Resolve date argument
+        if date_arg.lower() in ['today', 'latest']:
+            # Get today's date or latest daily date
+            if date_arg.lower() == 'today':
+                date = get_current_date()
+            else:
+                latest = get_latest_daily()
+                if not latest:
+                    print("No daily entries found.")
+                    return 1
+                date = latest.daily_date
+        else:
+            # Assume it's a date in YYYY-MM-DD format
+            date = date_arg
+
+        # Check if daily exists
+        daily = get_daily_for_date(date)
+        if not daily:
+            print(f"No daily found for date: {date}")
+            return 1
+
+        # Delete the daily
+        if delete_daily(date):
+            print(f"Deleted daily for {date}")
+            return 0
+        else:
+            print(f"Failed to delete daily for {date}")
+            return 1
+
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return 1
+    except Exception as e:
+        print(f"Error deleting daily: {e}")
         return 1
 
 

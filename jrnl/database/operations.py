@@ -158,3 +158,11 @@ def get_previous_daily_before(date: str) -> Optional[Daily]:
                 daily_message=row['daily_message']
             )
         return None
+
+
+def delete_daily(date: str) -> bool:
+    """Delete a daily entry by its date. Returns True if deleted, False if not found."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM dailies WHERE daily_date = ?', (date,))
+        return cursor.rowcount > 0
