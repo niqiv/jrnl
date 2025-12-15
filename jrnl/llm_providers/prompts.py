@@ -12,6 +12,8 @@ COMMIT DIFF:
 
 Compress this into a single concise paragraph (max 300 chars) that describes what work was completed. Focus on WHAT was done, not HOW. Use past tense. This will be used in a standup summary.
 
+Focus especially in TODO comments within the presence of changed files. This is most likely area where a developer should focus next, or possible obstacles.
+
 Examples:
 - "Fixed authentication bug in user login flow"
 - "Added dark mode toggle to settings page"
@@ -28,8 +30,8 @@ Generate a standup summary from the following work logs covering the past {days}
 
 Create a compact paragraph (3-5 sentences) covering:
 1. What was completed (synthesize related items)
-2. What's planned next (infer from recent work)
-3. Any obstacles or blockers (mention if none)
+2. What's planned next, if this is deductable from the information.
+3. Any obstacles or blockers (mention if none). Good indication of a blocker is commit message or todo-comments.
 
 Keep it professional but conversational. Use past tense for completed work.
 
