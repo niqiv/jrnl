@@ -1,0 +1,5 @@
+This project is licensed under the GNU General Public License v2.
+
+This project depends on third-party software licensed under the MIT License
+and the Mozilla Public License 2.0. These components are distributed under
+their own licenses by their respective authors.

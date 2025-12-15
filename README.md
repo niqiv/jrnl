@@ -139,7 +139,7 @@ jrnl uninstall
 
 ## License
 
-MIT
+GPL 2.0
 
 ## Development
 

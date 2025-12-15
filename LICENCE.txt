@@ -1,0 +1,1 @@
+This project is not yet released and can not be used freely. It is intended to be released with GPL v2 after licence incompatibilities are resolved.
