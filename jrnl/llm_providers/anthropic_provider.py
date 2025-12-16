@@ -1,9 +1,10 @@
 """Anthropic/Claude LLM provider."""
 
-import anthropic
+# import anthropic
 from typing import Dict, List
 from .base import LLMProvider
 from .prompts import COMPRESS_COMMIT_PROMPT, GENERATE_DAILY_PROMPT
+import requests
 
 
 class AnthropicProvider(LLMProvider):
@@ -11,15 +12,38 @@ class AnthropicProvider(LLMProvider):
 
     def __init__(self, config: Dict):
         super().__init__(config)
-        api_key = config.get('api_key', '')
-        if not api_key:
+        self.api_key = config.get('api_key', '')
+        if not self.api_key:
             raise ValueError("Anthropic API key not configured. Run: jrnl config set anthropic api_key YOUR_KEY")
 
-        self.client = anthropic.Anthropic(api_key=api_key)
+        # self.client = anthropic.Anthropic(api_key=api_key)
         self.model = config.get('model', 'claude-sonnet-4-5-20250929')
         self.max_tokens_commit = config.get('max_tokens_commit', 200)
         self.max_tokens_daily = config.get('max_tokens_daily', 500)
-
+        
+    def _send_message(self, prompt: dict, max_tokens=200) -> dict:
+        res = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                'x-api-key': self.api_key,
+                'anthropic-version': '2023-06-01',
+                'Content-Type': 'application/json'
+            },
+            data={
+                'model': self.model,
+                'max_tokens': max_tokens,
+                'temperature': 0.3,
+                'messages': [
+                    {
+                        'role': 'user',
+                        'text': prompt
+                    }
+                ]
+            }
+        )
+        
+        return res.json()
+        
     def compress_commit(self, commit_message: str, commit_diff: str) -> str:
         """Compress commit using Claude."""
         prompt = COMPRESS_COMMIT_PROMPT.format(
@@ -28,21 +52,14 @@ class AnthropicProvider(LLMProvider):
         )
 
         try:
-            message = self.client.messages.create(
-                model=self.model,
+            message = self._send_message(
+                message=prompt,
                 max_tokens=self.max_tokens_commit,
-                temperature=0.3,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
             )
-            return message.content[0].text.strip()
-        except anthropic.AuthenticationError:
-            return f"[Auth Error] {commit_message}"
-        except anthropic.RateLimitError:
-            return f"[Rate Limit] {commit_message}"
-        except anthropic.APIError as e:
-            return f"[API Error] {commit_message}"
+            
+            return message.get('content', [])[0].get('text').strip()
+        except IndexError as e:
+            return f"[Anthropic Error] {commit_message}"
         except Exception as e:
             return f"[LLM Error] {commit_message}"
 
@@ -60,21 +77,15 @@ class AnthropicProvider(LLMProvider):
         )
 
         try:
-            message = self.client.messages.create(
-                model=self.model,
+            message = self._send_message(
+                message=prompt,
                 max_tokens=self.max_tokens_daily,
-                temperature=0.5,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
             )
-            return message.content[0].text.strip()
-        except anthropic.AuthenticationError:
-            raise RuntimeError("Invalid Anthropic API key. Run: jrnl config set anthropic api_key YOUR_KEY")
-        except anthropic.RateLimitError:
-            raise RuntimeError("Anthropic API rate limit exceeded. Try again later or use ollama.")
-        except anthropic.APIError as e:
-            raise RuntimeError(f"Anthropic API error: {e}")
+            
+            return message.get('content', [])[0].get('text').strip()
+
+        except IndexError as e:
+            return f"[Anthropic Error] Failed to generate daily."
         except Exception as e:
             raise RuntimeError(f"Failed to generate daily: {type(e).__name__}: {e}")
 
