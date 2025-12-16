@@ -29,19 +29,24 @@ class AnthropicProvider(LLMProvider):
                 'anthropic-version': '2023-06-01',
                 'Content-Type': 'application/json'
             },
-            data={
+            json={
                 'model': self.model,
                 'max_tokens': max_tokens,
                 'temperature': 0.3,
                 'messages': [
                     {
                         'role': 'user',
-                        'text': prompt
+                        'content': [
+                            {
+                                'type': 'text',
+                                'text': prompt
+                            }
+                        ]
                     }
                 ]
             }
         )
-        
+
         return res.json()
         
     def compress_commit(self, commit_message: str, commit_diff: str) -> str:
@@ -85,7 +90,7 @@ class AnthropicProvider(LLMProvider):
             return message.get('content', [])[0].get('text').strip()
 
         except IndexError as e:
-            return f"[Anthropic Error] Failed to generate daily."
+            return f"[Anthropic Error] Failed to generate daily: {type(e).__name__}: {e}"
         except Exception as e:
             raise RuntimeError(f"Failed to generate daily: {type(e).__name__}: {e}")
 
