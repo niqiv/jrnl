@@ -53,7 +53,7 @@ class AnthropicProvider(LLMProvider):
 
         try:
             message = self._send_message(
-                message=prompt,
+                prompt=prompt,
                 max_tokens=self.max_tokens_commit,
             )
             
@@ -78,7 +78,7 @@ class AnthropicProvider(LLMProvider):
 
         try:
             message = self._send_message(
-                message=prompt,
+                prompt=prompt,
                 max_tokens=self.max_tokens_daily,
             )
             
