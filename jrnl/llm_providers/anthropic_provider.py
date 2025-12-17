@@ -1,6 +1,5 @@
 """Anthropic/Claude LLM provider."""
 
-# import anthropic
 from typing import Dict, List
 from .base import LLMProvider
 from .prompts import COMPRESS_COMMIT_PROMPT, GENERATE_DAILY_PROMPT
@@ -16,7 +15,6 @@ class AnthropicProvider(LLMProvider):
         if not self.api_key:
             raise ValueError("Anthropic API key not configured. Run: jrnl config set anthropic api_key YOUR_KEY")
 
-        # self.client = anthropic.Anthropic(api_key=api_key)
         self.model = config.get('model', 'claude-sonnet-4-5-20250929')
         self.max_tokens_commit = config.get('max_tokens_commit', 200)
         self.max_tokens_daily = config.get('max_tokens_daily', 500)
